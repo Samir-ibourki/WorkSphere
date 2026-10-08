@@ -7,45 +7,87 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Organization {
-  id    int   @id @default(autoincrement())
-  name  String  
-  slug  String @unique
-  createdAt DateTime    @default (now())
-  updateAt DateTime     @updateAt
+// ------------------------------------------------------
+// ------------------------------------------------------
 
+enum ProjectStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
 }
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+// ------------------------------------------------------
+// ------------------------------------------------------
+
+model Organization {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  users     User[]
+  projects  Project[]
+}
+
+// ------------------------------------------------------
+// ------------------------------------------------------
 
 model User {
-id        int         @id @default(autoincrement())
-email     String      @unique
-name      String?
-password  String      @unique
-organizationId  int   
-createdAt DateTime    @default (now())
-updateAt  DateTime     @updateAt
-posts     Post[]
+  id             String       @id @default(cuid())
+  email          String       @unique
+  name           String
+  password       String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedTasks  Task[]
 }
+
+// ------------------------------------------------------
+// ------------------------------------------------------
 
 model Project {
-  id        Int      @id @default(autoincrement())
-  title     String
-  description   String?
-  status String 
-  organizationId  int 
-  createdAt DateTime    @default (now())
-  updateAt  DateTime     @updateAt
+  id             String        @id @default(cuid())
+  name           String
+  description    String?
+  status         ProjectStatus @default(ACTIVE)
+  organizationId String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tasks          Task[]
 }
 
+// ------------------------------------------------------
+// ------------------------------------------------------
+
 model Task {
-  id        Int      @id @default(autoincrement())
-  title     String
-  description   String?
-  status String 
-  priority  String
-  projectId int 
-  assignedToId 
-  createdAt DateTime    @default (now())
-  updateAt  DateTime     @updateAt
+  id           String       @id @default(cuid())
+  title        String
+  description  String?
+  status       TaskStatus   @default(TODO)
+  priority     TaskPriority @default(MEDIUM)
+  projectId    String
+  assignedToId String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedTo   User?        @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
 }
