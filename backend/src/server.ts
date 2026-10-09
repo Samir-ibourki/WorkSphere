@@ -5,6 +5,8 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import prisma from "./prisma/client.js";
 
+import authRouter from "./modules/auth/auth.routes.js";
+
 dotenv.config();
 
 const app = express();
@@ -15,6 +17,9 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+
+// Routes
+app.use("/api/auth", authRouter);
 
 // Health check
 app.get("/api/health", (_req, res) => {
