@@ -7,6 +7,7 @@ import prisma from "./prisma/client.js";
 
 import authRouter from "./modules/auth/auth.routes.js";
 import projectRouter from "./modules/projects/project.routes.js";
+import taskRouter from "./modules/tasks/task.routes.js";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/projects", projectRouter);
+app.use("/api/tasks", taskRouter);
 
 // Health check
 app.get("/api/health", (_req, res) => {
