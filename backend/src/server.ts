@@ -10,6 +10,7 @@ import projectRouter from "./modules/projects/project.routes.js";
 import taskRouter from "./modules/tasks/task.routes.js";
 import organizationRouter from "./modules/organizations/organization.routes.js";
 import dashboardRouter from "./modules/dashboard/dashboard.routes.js";
+import { generalLimiter } from "./middleware/rateLimiter.js";
 
 dotenv.config();
 
@@ -21,6 +22,9 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+
+// Rate Limiting (DoS protection for all /api endpoints)
+app.use("/api", generalLimiter);
 
 // Routes
 app.use("/api/auth", authRouter);
