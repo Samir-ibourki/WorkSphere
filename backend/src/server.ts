@@ -9,6 +9,7 @@ import authRouter from "./modules/auth/auth.routes.js";
 import projectRouter from "./modules/projects/project.routes.js";
 import taskRouter from "./modules/tasks/task.routes.js";
 import organizationRouter from "./modules/organizations/organization.routes.js";
+import dashboardRouter from "./modules/dashboard/dashboard.routes.js";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/organizations", organizationRouter)
+app.use("/api/dashboard", dashboardRouter)
 
 // Health check
 app.get("/api/health", (_req, res) => {
