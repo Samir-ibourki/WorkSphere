@@ -10,7 +10,10 @@ export const useRegister = () => {
       console.log("Registered successfully:", response);
     },
     onError: (error: any) => {
-      console.error("Register failed:", error.response?.data?.message || error.message);
+      console.error(
+        "Register failed:",
+        error.response?.data?.message || error.message,
+      );
     },
   });
 };
@@ -28,7 +31,10 @@ export const useLogin = () => {
       }
     },
     onError: (error: any) => {
-      console.error("Login failed:", error.response?.data?.message || error.message);
+      console.error(
+        "Login failed:",
+        error.response?.data?.message || error.message,
+      );
     },
   });
 };
@@ -41,5 +47,6 @@ export const useProfile = () => {
     queryKey: ["profile"],
     queryFn: profileApi,
     enabled: isAuthenticated,
+    select: (res: any) => res.data,
   });
 };
