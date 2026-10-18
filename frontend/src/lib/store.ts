@@ -5,12 +5,48 @@ export type TaskStatus = "todo" | "progress" | "done";
 export type ProjectStatus = "active" | "planning" | "completed";
 export type Role = "Owner" | "Admin" | "Member";
 
-export interface Member { id: string; name: string; email: string; role: Role; hue: number }
-export interface Task { id: string; projectId: string; title: string; description: string; priority: Priority; status: TaskStatus; due: string; assignee: string }
-export interface Project { id: string; name: string; description: string; status: ProjectStatus; members: string[]; color: number }
-export interface Activity { id: string; who: string; action: string; target: string; at: string }
+export interface Member { 
+  id: string; 
+  name: string; 
+  email: string; 
+  role: Role; 
+  hue: number 
+}
+export interface Task { 
+  id: string; 
+  projectId: string; 
+  title: string; 
+  description: string; 
+  priority: Priority; 
+  status: TaskStatus; 
+  due: string; 
+  assignee: string 
+}
+export interface Project { 
+  id: string; 
+  name: string; 
+  description: string; 
+  status: ProjectStatus; 
+  members: string[]; 
+  color: number 
+}
+export interface Activity { 
+  id: string; 
+  who: string; 
+  action: string; 
+  target: string; 
+  at: string 
+}
 
-interface State { workspace: { name: string; slug: string }; members: Member[]; projects: Project[]; tasks: Task[]; activity: Activity[] }
+interface State { 
+  workspace: { 
+  name: string; 
+  slug: string }; 
+members: Member[]; 
+projects: Project[]; 
+tasks: Task[]; 
+activity: Activity[] 
+}
 
 const m = (id: string, name: string, role: Role, hue: number): Member => ({ id, name, role, hue, email: `${(name.split(" ")[0] ?? name).toLowerCase()}@worksphere.io` });
 

@@ -14,7 +14,10 @@ import {
   Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useStore, type Member, type Priority, type ProjectStatus } from "@/lib/store";
+import { type Member, type Priority, type ProjectStatus } from "@/lib/store";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useGetOrganization, useGetOrganizationUsers } from "@/hooks/useOrganization";
+import { useGetProjects } from "@/hooks/useProjects";
 
 export function Logo({ className }: { className?: string }) {
   return (
@@ -62,12 +65,13 @@ export function Avatar({
   );
 }
 
-export function AvatarStack({ ids, size = 24 }: { ids: string[]; size?: number }) {
-  const members = useStore((s) => s.members);
+export function AvatarStack({ ids = [], size = 24 }: { ids?: string[]; size?: number }) {
+  const { data: members } = useGetOrganizationUsers();
+  const membersList: any[] = members || [];
   return (
     <div className="flex -space-x-1.5">
       {ids.map((id) => (
-        <Avatar key={id} m={members.find((x) => x.id === id)} size={size} ring />
+        <Avatar key={id} m={membersList.find((x: any) => x.id === id)} size={size} ring />
       ))}
     </div>
   );
@@ -136,9 +140,12 @@ export function AppShell({
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const path = location.pathname;
-  const ws = useStore((s) => s.workspace);
-  const me = useStore((s) => s.members[0])!;
-  const projects = useStore((s) => s.projects);
+  const user = useAuthStore((s) => s.user);
+  const { data: organization } = useGetOrganization();
+  const { data: projectsData } = useGetProjects();
+
+  const orgName = organization?.name || (user?.name ? `${user.name}'s Org` : "Acme Inc.");
+  const sidebarProjects: any[] = projectsData || [];
 
   // Theme state: defaults to false (clean white mode), persists via localStorage
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -173,10 +180,10 @@ export function AppShell({
         {!collapsed && (
           <button className="mx-3 mb-3 flex items-center gap-2 rounded-lg border border-border bg-sidebar-accent px-2.5 py-2 text-left text-sm transition hover:border-primary/40 hover:shadow-sm">
             <div className="grid size-5 place-items-center rounded bg-gradient-primary text-[10px] font-bold text-primary-foreground">
-              {ws.name[0]}
+              {orgName[0]}
             </div>
             <span className="flex-1 truncate font-medium text-sidebar-accent-foreground">
-              {ws.name}
+              {orgName}
             </span>
             <ChevronsUpDown className="size-3.5 text-muted-foreground" />
           </button>
@@ -210,28 +217,31 @@ export function AppShell({
               Projects
             </p>
             <div className="flex flex-col gap-0.5">
-              {projects.slice(0, 5).map((p) => (
-                <Link
-                  key={p.id}
-                  to={`/projects/${p.id}`}
-                  className="flex items-center gap-2 rounded-md py-1.5 px-1 text-sm text-sidebar-foreground/75 transition-colors hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/40"
-                >
-                  <span
-                    className="size-2 rounded-sm shrink-0"
-                    style={{ background: `oklch(0.65 0.17 ${p.color})` }}
-                  />
-                  <span className="truncate">{p.name}</span>
-                </Link>
-              ))}
+              {sidebarProjects.length === 0 ? (
+                <p className="px-1 py-1 text-xs text-muted-foreground/70">No projects yet</p>
+              ) : (
+                sidebarProjects.slice(0, 5).map((p: any) => (
+                  <Link
+                    key={p.id}
+                    to={`/projects/${p.id}`}
+                    className="flex items-center gap-2 rounded-md py-1.5 px-1 text-sm text-sidebar-foreground/75 transition-colors hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/40"
+                  >
+                    <span
+                      className="size-2 rounded-sm shrink-0 bg-primary"
+                    />
+                    <span className="truncate">{p.name}</span>
+                  </Link>
+                ))
+              )}
             </div>
           </div>
         )}
         <div className="mt-auto flex items-center gap-2.5 border-t border-sidebar-border p-3 bg-sidebar/50">
-          <Avatar m={me} size={28} />
+          <Avatar m={{ name: user?.name || "User", hue: 277 } as any} size={28} />
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium leading-none">{me.name}</p>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">{me.email}</p>
+              <p className="truncate text-sm font-medium leading-none">{user?.name || "User"}</p>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">{user?.email || ""}</p>
             </div>
           )}
         </div>
