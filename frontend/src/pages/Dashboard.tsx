@@ -157,7 +157,11 @@ export function Dashboard() {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {recentProjects.map((p) => {
-                const pct = p.progress ?? 0;
+                const projectTasks: any[] = p.tasks || [];
+                const totalTasks = projectTasks.length;
+                const doneTasks = projectTasks.filter((t: any) => t.status === "DONE").length;
+                const pct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : (p.progress ?? 0);
+
                 return (
                   <Link
                     key={p.id}
@@ -167,7 +171,7 @@ export function Dashboard() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
                         <span
-                          className="size-2.5 rounded-xs shrink-0 bg-primary"
+                          className="size-2.5 rounded-full shrink-0 bg-primary"
                         />
                         <span className="font-medium text-card-foreground group-hover:text-primary transition-colors">
                           {p.name}
@@ -188,7 +192,7 @@ export function Dashboard() {
                     <div className="mt-4 flex items-center justify-between">
                       <AvatarStack ids={p.members || []} size={22} />
                       <span className="text-xs text-muted-foreground font-medium">
-                        {p.description || "Active initiative"}
+                        {doneTasks}/{totalTasks} tasks
                       </span>
                     </div>
                   </Link>
