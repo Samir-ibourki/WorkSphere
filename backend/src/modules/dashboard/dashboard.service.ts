@@ -2,6 +2,9 @@ import prisma from "../../prisma/client.js";
 
 export const dashboardService = {
   async getDashboardStats(organizationId: string) {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
     const [
       totalProjects,
       totalTasks,
@@ -10,6 +13,10 @@ export const dashboardService = {
       completedTasks,
       recentProjects,
       recentTasks,
+      projectsThisWeek,
+      tasksThisWeek,
+      completedThisWeek,
+      membersThisWeek,
     ] = await Promise.all([
       // 1. total projet
       prisma.project.count({
@@ -62,6 +69,39 @@ export const dashboardService = {
           assignedTo: { select: { id: true, name: true } },
         },
       }),
+
+      // 8. new projects this week
+      prisma.project.count({
+        where: {
+          organizationId,
+          createdAt: { gte: oneWeekAgo },
+        },
+      }),
+
+      // 9. new tasks this week
+      prisma.task.count({
+        where: {
+          project: { organizationId },
+          createdAt: { gte: oneWeekAgo },
+        },
+      }),
+
+      // 10. completed tasks this week
+      prisma.task.count({
+        where: {
+          project: { organizationId },
+          status: "DONE",
+          updatedAt: { gte: oneWeekAgo },
+        },
+      }),
+
+      // 11. new members this week
+      prisma.user.count({
+        where: {
+          organizationId,
+          createdAt: { gte: oneWeekAgo },
+        },
+      }),
     ]);
 
     return {
@@ -71,6 +111,12 @@ export const dashboardService = {
         todoTasks,
         inProgressTasks,
         completedTasks,
+      },
+      trends: {
+        projectsThisWeek,
+        tasksThisWeek,
+        completedThisWeek,
+        membersThisWeek,
       },
       recentProjects,
       recentTasks,

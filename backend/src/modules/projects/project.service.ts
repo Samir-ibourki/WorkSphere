@@ -21,7 +21,10 @@ export const projectService = {
     async getProjects (organizationId: string){
         return await prisma.project.findMany({
             where:{organizationId},
-            orderBy: {createdAt: "desc"}
+            orderBy: {createdAt: "desc"},
+            include: {
+                tasks: true,
+            }
         })
     },
 
