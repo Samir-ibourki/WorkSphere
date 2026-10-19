@@ -57,6 +57,9 @@ export const dashboardService = {
         where: { organizationId },
         orderBy: { createdAt: "desc" },
         take: 5,
+        include: {
+          tasks: true,
+        },
       }),
 
       // 7. last 5 of tasks
