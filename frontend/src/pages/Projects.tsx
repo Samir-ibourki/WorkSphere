@@ -3,11 +3,13 @@ import { AppShell, AvatarStack, NewButton, ProgressBar, StatusBadge } from "@/co
 import { ArrowUpRight, Search, FolderKanban } from "lucide-react";
 import { useState } from "react";
 import { useGetProjects } from "@/hooks/useProjects";
+import { CreateProjectModal } from "@/components/CreateProjectModal";
 
 export function Projects() {
   const { data: projects, isLoading } = useGetProjects();
   const [filter, setFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const projectList: any[] = projects || [];
 
@@ -20,7 +22,10 @@ export function Projects() {
   });
 
   return (
-    <AppShell crumbs={["Projects"]} action={<NewButton label="New Project" />}>
+    <AppShell
+      crumbs={["Projects"]}
+      action={<NewButton label="New Project" onClick={() => setIsCreateOpen(true)} />}
+    >
       {/* header + serch and status filters */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -129,6 +134,12 @@ export function Projects() {
           })}
         </div>
       )}
+
+      {/* Create Project Modal */}
+      <CreateProjectModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+      />
     </AppShell>
   );
 }
