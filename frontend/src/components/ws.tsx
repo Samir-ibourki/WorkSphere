@@ -12,6 +12,7 @@ import {
   Bell,
   Sun,
   Moon,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type Member, type Priority, type ProjectStatus } from "@/lib/store";
@@ -141,6 +142,7 @@ export function AppShell({
   const location = useLocation();
   const path = location.pathname;
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const { data: organization } = useGetOrganization();
   const { data: projectsData } = useGetProjects();
 
@@ -239,10 +241,19 @@ export function AppShell({
         <div className="mt-auto flex items-center gap-2.5 border-t border-sidebar-border p-3 bg-sidebar/50">
           <Avatar m={{ name: user?.name || "User", hue: 277 } as any} size={28} />
           {!collapsed && (
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium leading-none">{user?.name || "User"}</p>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">{user?.email || ""}</p>
-            </div>
+            <>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium leading-none">{user?.name || "User"}</p>
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">{user?.email || ""}</p>
+              </div>
+              <button
+                onClick={logout}
+                title="Log out"
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
+              >
+                <LogOut className="size-4" />
+              </button>
+            </>
           )}
         </div>
       </aside>

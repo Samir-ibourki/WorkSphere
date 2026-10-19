@@ -4,10 +4,15 @@ import { useAuthStore } from "../store/useAuthStore";
 
 //  hook of register
 export const useRegister = () => {
+  const login = useAuthStore((state) => state.login);
+
   return useMutation({
     mutationFn: (data: any) => registerApi(data),
     onSuccess: (response: any) => {
-      console.log("Registered successfully:", response);
+      const { user, token } = response.data || response;
+      if (token && user) {
+        login(user, token);
+      }
     },
     onError: (error: any) => {
       console.error(
