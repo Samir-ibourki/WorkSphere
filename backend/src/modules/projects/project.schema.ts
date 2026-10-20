@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const createProjectSchema = z.object({
     name : z.string().min(3, "Name must be at least 3 characters"),
-    description : z.string().optional(),
+    description : z.string().optional().nullable(),
     status: z.enum(["ACTIVE", "COMPLETED", "ARCHIVED"]).optional().default("ACTIVE"),
 })
 

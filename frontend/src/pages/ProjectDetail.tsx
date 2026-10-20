@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   Calendar,
   Plus,
@@ -9,6 +9,8 @@ import {
   Trash2,
   UserPlus,
   UserCheck,
+  MoreHorizontal,
+  Pencil,
 } from "lucide-react";
 import {
   AppShell,
@@ -19,11 +21,12 @@ import {
   StatusBadge,
   inputCls,
 } from "@/components/ws";
-import { useGetProjectById } from "@/hooks/useProjects";
+import { useGetProjectById, useDeleteProject } from "@/hooks/useProjects";
 import { useGetTasks, useCreateTask, useUpdateTask, useDeleteTask } from "@/hooks/useTasks";
 import { useGetOrganizationUsers } from "@/hooks/useOrganization";
 import { TaskDetailModal } from "@/components/TaskDetailModal";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
+import { EditProjectModal } from "@/components/EditProjectModal";
 import { cn } from "@/lib/utils";
 
 type ColumnStatus = "TODO" | "IN_PROGRESS" | "DONE";
@@ -37,6 +40,7 @@ const cols: { id: ColumnStatus; label: string; icon: typeof Circle; cls: string 
 
 export function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const { data: project, isLoading: isProjectLoading } = useGetProjectById(id || "");
   const { data: tasksData, isLoading: isTasksLoading } = useGetTasks(id);
@@ -44,12 +48,17 @@ export function ProjectDetail() {
 
   const { mutate: updateTask } = useUpdateTask();
   const { mutate: deleteTask, isPending: isDeleting } = useDeleteTask();
+  const { mutate: deleteProject, isPending: isDeletingProject } = useDeleteProject();
 
   const [over, setOver] = useState<ColumnStatus | null>(null);
   const [addingColumn, setAddingColumn] = useState<ColumnStatus | null>(null);
   const [activeAssignTaskId, setActiveAssignTaskId] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<any | null>(null);
+
+  const [isEditProjectOpen, setIsEditProjectOpen] = useState(false);
+  const [isDeleteProjectOpen, setIsDeleteProjectOpen] = useState(false);
+  const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
 
   if (isProjectLoading || isTasksLoading) {
     return (
@@ -113,6 +122,55 @@ export function ProjectDetail() {
               {project.name}
             </h1>
             <StatusBadge s={project.status?.toLowerCase() || "active"} />
+
+            {/* Project Actions Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsProjectMenuOpen(!isProjectMenuOpen)}
+                title="Project actions"
+                className="flex size-7 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground transition cursor-pointer"
+              >
+                <MoreHorizontal className="size-4" />
+              </button>
+
+              {isProjectMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30"
+                    onClick={() => setIsProjectMenuOpen(false)}
+                  />
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute left-0 top-full z-40 mt-1.5 w-40 rounded-xl border border-border bg-card p-1.5 shadow-xl animate-in fade-in zoom-in-95 duration-100"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProjectMenuOpen(false);
+                        setIsEditProjectOpen(true);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-foreground hover:bg-secondary transition cursor-pointer"
+                    >
+                      <Pencil className="size-3.5 text-muted-foreground" />
+                      <span>Edit Project</span>
+                    </button>
+                    <div className="my-1 border-t border-border/50" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProjectMenuOpen(false);
+                        setIsDeleteProjectOpen(true);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-destructive hover:bg-destructive/10 transition cursor-pointer"
+                    >
+                      <Trash2 className="size-3.5" />
+                      <span>Delete Project</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
             {project.description || "No description provided."}
@@ -360,7 +418,7 @@ export function ProjectDetail() {
         membersList={membersList}
       />
 
-      {/* Delete Confirmation Alert Modal */}
+      {/* Delete Task Confirmation Alert Modal */}
       <ConfirmDeleteModal
         isOpen={!!taskToDelete}
         onClose={() => setTaskToDelete(null)}
@@ -369,6 +427,31 @@ export function ProjectDetail() {
         description="Are you sure you want to delete this task? This action cannot be undone."
         itemTitle={taskToDelete?.title}
         isLoading={isDeleting}
+      />
+
+      {/* Edit Project Modal */}
+      <EditProjectModal
+        project={project}
+        isOpen={isEditProjectOpen}
+        onClose={() => setIsEditProjectOpen(false)}
+      />
+
+      {/* Delete Project Confirmation Alert Modal */}
+      <ConfirmDeleteModal
+        isOpen={isDeleteProjectOpen}
+        onClose={() => setIsDeleteProjectOpen(false)}
+        onConfirm={() => {
+          deleteProject(project.id, {
+            onSuccess: () => {
+              setIsDeleteProjectOpen(false);
+              navigate("/projects");
+            },
+          });
+        }}
+        title="Delete Project"
+        description="Are you sure you want to delete this project? All associated tasks will be permanently removed. This action cannot be undone."
+        itemTitle={project.name}
+        isLoading={isDeletingProject}
       />
     </AppShell>
   );
