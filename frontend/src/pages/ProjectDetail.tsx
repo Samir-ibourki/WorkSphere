@@ -23,6 +23,7 @@ import { useGetProjectById } from "@/hooks/useProjects";
 import { useGetTasks, useCreateTask, useUpdateTask, useDeleteTask } from "@/hooks/useTasks";
 import { useGetOrganizationUsers } from "@/hooks/useOrganization";
 import { TaskDetailModal } from "@/components/TaskDetailModal";
+import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { cn } from "@/lib/utils";
 
 type ColumnStatus = "TODO" | "IN_PROGRESS" | "DONE";
@@ -42,12 +43,13 @@ export function ProjectDetail() {
   const { data: members } = useGetOrganizationUsers();
 
   const { mutate: updateTask } = useUpdateTask();
-  const { mutate: deleteTask } = useDeleteTask();
+  const { mutate: deleteTask, isPending: isDeleting } = useDeleteTask();
 
   const [over, setOver] = useState<ColumnStatus | null>(null);
   const [addingColumn, setAddingColumn] = useState<ColumnStatus | null>(null);
   const [activeAssignTaskId, setActiveAssignTaskId] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<any | null>(null);
 
   if (isProjectLoading || isTasksLoading) {
     return (
@@ -94,10 +96,11 @@ export function ProjectDetail() {
     updateTask({ id: taskId, data: { status: targetStatus } });
   };
 
-  const handleDelete = (taskId: string) => {
-    if (window.confirm("Are you sure you want to delete this task?")) {
-      deleteTask(taskId);
-    }
+  const handleConfirmDelete = () => {
+    if (!taskToDelete) return;
+    deleteTask(taskToDelete.id, {
+      onSuccess: () => setTaskToDelete(null),
+    });
   };
 
   return (
@@ -201,7 +204,7 @@ export function ProjectDetail() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(t.id);
+                            setTaskToDelete(t);
                           }}
                           className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition p-0.5 cursor-pointer"
                           title="Delete task"
@@ -355,6 +358,17 @@ export function ProjectDetail() {
         isOpen={!!selectedTask}
         onClose={() => setSelectedTask(null)}
         membersList={membersList}
+      />
+
+      {/* Delete Confirmation Alert Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!taskToDelete}
+        onClose={() => setTaskToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Task"
+        description="Are you sure you want to delete this task? This action cannot be undone."
+        itemTitle={taskToDelete?.title}
+        isLoading={isDeleting}
       />
     </AppShell>
   );

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Avatar } from "@/components/ws";
 import { useUpdateTask, useDeleteTask } from "@/hooks/useTasks";
+import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { cn } from "@/lib/utils";
 
 type ColumnStatus = "TODO" | "IN_PROGRESS" | "DONE";
@@ -47,7 +48,7 @@ export function TaskDetailModal({
   const [status, setStatus] = useState<ColumnStatus>("TODO");
   const [priority, setPriority] = useState<PriorityLevel>("MEDIUM");
   const [assignedToId, setAssignedToId] = useState<string>("");
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const { mutate: updateTask, isPending: isUpdating } = useUpdateTask();
@@ -60,7 +61,7 @@ export function TaskDetailModal({
       setStatus(task.status || "TODO");
       setPriority(task.priority || "MEDIUM");
       setAssignedToId(task.assignedToId || "");
-      setConfirmDelete(false);
+      setIsDeleteModalOpen(false);
       setErrorMessage("");
     }
   }, [task]);
@@ -108,14 +109,10 @@ export function TaskDetailModal({
     );
   };
 
-  const handleDelete = () => {
-    if (!confirmDelete) {
-      setConfirmDelete(true);
-      return;
-    }
-
+  const handleConfirmDelete = () => {
     deleteTask(task.id, {
       onSuccess: () => {
+        setIsDeleteModalOpen(false);
         onClose();
       },
       onError: (err: any) => {
@@ -123,6 +120,7 @@ export function TaskDetailModal({
           err?.response?.data?.message ||
           "Failed to delete task. Please try again.";
         setErrorMessage(msg);
+        setIsDeleteModalOpen(false);
       },
     });
   };
@@ -303,20 +301,15 @@ export function TaskDetailModal({
 
           {/* Action Footer */}
           <div className="pt-4 mt-6 border-t border-border flex items-center justify-between gap-2 flex-wrap">
-            {/* Delete button with confirmation */}
+            {/* Delete task button triggers popup confirmation */}
             <button
               type="button"
               disabled={isBusy}
-              onClick={handleDelete}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all cursor-pointer disabled:opacity-50",
-                confirmDelete
-                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm"
-                  : "border border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-              )}
+              onClick={() => setIsDeleteModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all cursor-pointer disabled:opacity-50"
             >
               <Trash2 className="size-3.5" />
-              <span>{confirmDelete ? "Confirm Delete?" : "Delete Task"}</span>
+              <span>Delete Task</span>
             </button>
 
             {/* Cancel & Save */}
@@ -341,6 +334,17 @@ export function TaskDetailModal({
           </div>
         </form>
       </div>
+
+      {/* Confirmation Alert Pop-up */}
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Task"
+        description="Are you sure you want to delete this task? This action cannot be undone."
+        itemTitle={task.title}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
