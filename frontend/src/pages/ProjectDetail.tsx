@@ -22,6 +22,7 @@ import {
 import { useGetProjectById } from "@/hooks/useProjects";
 import { useGetTasks, useCreateTask, useUpdateTask, useDeleteTask } from "@/hooks/useTasks";
 import { useGetOrganizationUsers } from "@/hooks/useOrganization";
+import { TaskDetailModal } from "@/components/TaskDetailModal";
 import { cn } from "@/lib/utils";
 
 type ColumnStatus = "TODO" | "IN_PROGRESS" | "DONE";
@@ -46,6 +47,7 @@ export function ProjectDetail() {
   const [over, setOver] = useState<ColumnStatus | null>(null);
   const [addingColumn, setAddingColumn] = useState<ColumnStatus | null>(null);
   const [activeAssignTaskId, setActiveAssignTaskId] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<any | null>(null);
 
   if (isProjectLoading || isTasksLoading) {
     return (
@@ -184,7 +186,8 @@ export function ProjectDetail() {
                       key={t.id}
                       draggable
                       onDragStart={(e) => e.dataTransfer.setData("text", t.id)}
-                      className="group cursor-grab rounded-xl border border-border bg-card p-3.5 shadow-card transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/40 active:cursor-grabbing"
+                      onClick={() => setSelectedTask(t)}
+                      className="group cursor-pointer rounded-xl border border-border bg-card p-3.5 shadow-card transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/40 active:cursor-grabbing"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p
@@ -196,8 +199,11 @@ export function ProjectDetail() {
                           {t.title}
                         </p>
                         <button
-                          onClick={() => handleDelete(t.id)}
-                          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition p-0.5"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(t.id);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition p-0.5 cursor-pointer"
                           title="Delete task"
                         >
                           <Trash2 className="size-3.5" />
@@ -306,7 +312,10 @@ export function ProjectDetail() {
                           .map((x) => (
                             <button
                               key={x.id}
-                              onClick={() => handleMove(t.id, x.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMove(t.id, x.id);
+                              }}
                               className="rounded-md border border-border/80 bg-secondary/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition cursor-pointer"
                             >
                               → {x.label}
@@ -339,6 +348,14 @@ export function ProjectDetail() {
           );
         })}
       </div>
+
+      {/* Task Details & Edit Modal */}
+      <TaskDetailModal
+        task={selectedTask}
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        membersList={membersList}
+      />
     </AppShell>
   );
 }
