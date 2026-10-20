@@ -12,9 +12,11 @@ export interface User {
 interface AuthState {
   user: User | null;
   token: string | null;
+  workspaceLogo: string | null;
   isAuthenticated: boolean;
   login: (user: User, token: string) => void;
   logout: () => void;
+  setWorkspaceLogo: (logo: string | null) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -22,6 +24,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       token: null,
+      workspaceLogo: null,
       isAuthenticated: false,
       login: (user: User, token: string) => {
         set({
@@ -34,8 +37,12 @@ export const useAuthStore = create<AuthState>()(
         set({
           user: null,
           token: null,
+          workspaceLogo: null,
           isAuthenticated: false,
         });
+      },
+      setWorkspaceLogo: (logo: string | null) => {
+        set({ workspaceLogo: logo });
       },
     }),
     {

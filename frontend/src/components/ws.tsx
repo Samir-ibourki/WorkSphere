@@ -58,7 +58,7 @@ export function Avatar({
         width: size,
         height: size,
         fontSize: size * 0.4,
-        background: `linear-gradient(135deg, oklch(0.6 0.15 ${m.hue}), oklch(0.5 0.15 ${m.hue + 40}))`,
+        background: `linear-gradient(135deg, oklch(0.6 0.15 ${m.hue ?? 260}), oklch(0.5 0.15 ${(m.hue ?? 260) + 40}))`,
       }}
     >
       {initials}
@@ -143,6 +143,7 @@ export function AppShell({
   const path = location.pathname;
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const workspaceLogo = useAuthStore((s) => s.workspaceLogo);
   const { data: organization } = useGetOrganization();
   const { data: projectsData } = useGetProjects();
 
@@ -181,9 +182,17 @@ export function AppShell({
         </div>
         {!collapsed && (
           <button className="mx-3 mb-3 flex items-center gap-2 rounded-lg border border-border bg-sidebar-accent px-2.5 py-2 text-left text-sm transition hover:border-primary/40 hover:shadow-sm">
-            <div className="grid size-5 place-items-center rounded bg-gradient-primary text-[10px] font-bold text-primary-foreground">
-              {orgName[0]}
-            </div>
+            {workspaceLogo ? (
+              <img
+                src={workspaceLogo}
+                alt="Logo"
+                className="size-5 rounded object-cover shadow-xs shrink-0"
+              />
+            ) : (
+              <div className="grid size-5 place-items-center rounded bg-gradient-primary text-[10px] font-bold text-primary-foreground shrink-0">
+                {orgName[0]}
+              </div>
+            )}
             <span className="flex-1 truncate font-medium text-sidebar-accent-foreground">
               {orgName}
             </span>

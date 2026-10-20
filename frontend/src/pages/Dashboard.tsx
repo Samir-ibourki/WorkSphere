@@ -23,6 +23,7 @@ export function Dashboard() {
   const nav = useNavigate();
 
   const user = useAuthStore((state) => state.user);
+  const workspaceLogo = useAuthStore((state) => state.workspaceLogo);
 
   const { data: dashboardData, isLoading: isDashboardLoading } = useGetDashboardStats();
 
@@ -101,13 +102,22 @@ export function Dashboard() {
       action={<NewButton onClick={() => nav("/projects")} />}
     >
       {/* Greeting Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Good evening, {user?.name || "Ava"}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Here's what's happening across your workspace.
-        </p>
+      <div className="mb-8 flex items-center gap-3.5">
+        {workspaceLogo && (
+          <img
+            src={workspaceLogo}
+            alt="Workspace Logo"
+            className="size-12 rounded-xl object-cover shadow-sm border border-border shrink-0"
+          />
+        )}
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            Good evening, {user?.name || "Ava"}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Here's what's happening across your workspace.
+          </p>
+        </div>
       </div>
 
       {/* KPI Stats Grid */}
