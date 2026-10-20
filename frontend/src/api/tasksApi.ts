@@ -4,8 +4,9 @@ import api from "./axios";
 export const createTaskApi = (data:any)=> api.post("/tasks", data)
 
 
-// get all tasks
-export const getTasksApi = () => api.get("/tasks");
+// get all tasks (filtered by projectId)
+export const getTasksApi = (projectId?: string) =>
+  api.get("/tasks", { params: projectId ? { projectId } : undefined });
 
 // get by ID
 export const getTaskByIdApi = (id: string) => api.get(`/tasks/${id}`);

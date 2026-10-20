@@ -84,11 +84,12 @@ const prio: Record<Priority, string> = {
   high: "bg-danger",
 };
 
-export function PriorityBadge({ p }: { p: Priority }) {
+export function PriorityBadge({ p = "medium" }: { p?: string }) {
+  const normalized = (p?.toLowerCase() || "medium") as Priority;
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-md border bg-secondary/60 px-1.5 py-0.5 text-[11px] font-medium capitalize text-secondary-foreground">
-      <span className={cn("size-1.5 rounded-full", prio[p])} />
-      {p}
+    <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/60 px-1.5 py-0.5 text-[11px] font-medium capitalize text-secondary-foreground">
+      <span className={cn("size-1.5 rounded-full", prio[normalized] || "bg-muted-foreground")} />
+      {normalized}
     </span>
   );
 }

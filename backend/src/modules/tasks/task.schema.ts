@@ -6,7 +6,7 @@ export const createTaskSchema = z.object({
   status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).default("TODO"),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
   projectId: z.string().min(1, "projectId is required"),
-  assignedToId: z.string().optional(),
+  assignedToId: z.string().optional().nullable(),
 });
 
 export const updateTaskSchema = createTaskSchema
