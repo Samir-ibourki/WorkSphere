@@ -8,3 +8,11 @@ export const updateOrganizationApi = (data: any) => api.patch("/organizations/me
 
 // get organization users
 export const getOrganizationUsersApi = () => api.get("/organizations/me/users");
+
+// invite / add member to organization
+export const inviteMemberApi = (data: { email: string; name?: string }) =>
+  api.post("/organizations/me/members", data);
+
+// remove member from organization
+export const removeMemberApi = (userId: string) =>
+  api.delete(`/organizations/me/members/${userId}`);

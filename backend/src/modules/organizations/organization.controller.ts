@@ -72,3 +72,56 @@ export const getOrganizationUsers = async (
     });
   }
 };
+
+// invite / add member
+export const inviteMember = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const organizationId = req.user!.organizationId;
+    const member = await organizationService.inviteMember(
+      organizationId,
+      req.body,
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Member added successfully",
+      data: member,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || "Failed to add member",
+    });
+  }
+};
+
+// remove member
+export const removeMember = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const organizationId = req.user!.organizationId;
+    const currentUserId = req.user!.userId;
+    const userId = req.params.userId as string;
+
+    await organizationService.removeMember(
+      organizationId,
+      userId,
+      currentUserId,
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Member removed successfully",
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || "Failed to remove member",
+    });
+  }
+};
