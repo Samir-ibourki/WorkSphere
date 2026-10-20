@@ -11,6 +11,9 @@ import {
   UserCheck,
   MoreHorizontal,
   Pencil,
+  Search,
+  X,
+  RotateCcw,
 } from "lucide-react";
 import {
   AppShell,
@@ -21,6 +24,7 @@ import {
   StatusBadge,
   inputCls,
 } from "@/components/ws";
+import { useAuthStore } from "@/store/useAuthStore";
 import { useGetProjectById, useDeleteProject } from "@/hooks/useProjects";
 import { useGetTasks, useCreateTask, useUpdateTask, useDeleteTask } from "@/hooks/useTasks";
 import { useGetOrganizationUsers } from "@/hooks/useOrganization";
@@ -41,6 +45,7 @@ const cols: { id: ColumnStatus; label: string; icon: typeof Circle; cls: string 
 export function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const currentUser = useAuthStore((s) => s.user);
 
   const { data: project, isLoading: isProjectLoading } = useGetProjectById(id || "");
   const { data: tasksData, isLoading: isTasksLoading } = useGetTasks(id);
@@ -59,6 +64,11 @@ export function ProjectDetail() {
   const [isEditProjectOpen, setIsEditProjectOpen] = useState(false);
   const [isDeleteProjectOpen, setIsDeleteProjectOpen] = useState(false);
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
+
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedAssignee, setSelectedAssignee] = useState<string>("ALL");
+  const [selectedPriority, setSelectedPriority] = useState<string>("ALL");
 
   if (isProjectLoading || isTasksLoading) {
     return (
@@ -100,6 +110,37 @@ export function ProjectDetail() {
   const totalTasks = tasks.length;
   const doneTasks = tasks.filter((t) => t.status === "DONE").length;
   const pct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
+  // Filter Tasks
+  const filteredTasks = tasks.filter((t) => {
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      t.title?.toLowerCase().includes(q) ||
+      t.description?.toLowerCase().includes(q);
+
+    const matchesAssignee =
+      selectedAssignee === "ALL" ||
+      (selectedAssignee === "UNASSIGNED" && !t.assignedToId) ||
+      t.assignedToId === selectedAssignee;
+
+    const matchesPriority =
+      selectedPriority === "ALL" ||
+      t.priority?.toUpperCase() === selectedPriority.toUpperCase();
+
+    return matchesSearch && matchesAssignee && matchesPriority;
+  });
+
+  const isFiltered =
+    searchQuery.trim() !== "" ||
+    selectedAssignee !== "ALL" ||
+    selectedPriority !== "ALL";
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setSelectedAssignee("ALL");
+    setSelectedPriority("ALL");
+  };
 
   const handleMove = (taskId: string, targetStatus: ColumnStatus) => {
     updateTask({ id: taskId, data: { status: targetStatus } });
@@ -189,10 +230,106 @@ export function ProjectDetail() {
         </div>
       </div>
 
+      {/* Board Controls: Search & Filters Toolbar */}
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/80 bg-card p-2.5 shadow-xs">
+        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[260px]">
+          {/* Search Input */}
+          <div className="relative flex-1 min-w-[170px] max-w-xs">
+            <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-8 w-full rounded-lg border border-input bg-secondary/40 pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none transition focus:border-primary/60 focus:ring-1 focus:ring-primary/20"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-2 text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Quick "My Tasks" Toggle */}
+          {currentUser && (
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedAssignee(selectedAssignee === currentUser.id ? "ALL" : currentUser.id)
+              }
+              className={cn(
+                "h-8 rounded-lg border px-2.5 text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0",
+                selectedAssignee === currentUser.id
+                  ? "border-primary/60 bg-primary/10 text-primary font-semibold"
+                  : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground hover:bg-secondary"
+              )}
+            >
+              <span>My Tasks</span>
+            </button>
+          )}
+
+          {/* Assignee Filter Dropdown */}
+          <select
+            value={selectedAssignee}
+            onChange={(e) => setSelectedAssignee(e.target.value)}
+            className="h-8 rounded-lg border border-border bg-secondary/40 px-2.5 text-xs text-foreground outline-none transition focus:border-primary/60 cursor-pointer shrink-0"
+          >
+            <option value="ALL">All Assignees</option>
+            <option value="UNASSIGNED">Unassigned</option>
+            {membersList.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Priority Filter Pills */}
+          <div className="hidden sm:flex rounded-lg border border-border bg-secondary/30 p-0.5 text-xs">
+            {["ALL", "LOW", "MEDIUM", "HIGH"].map((pr) => (
+              <button
+                key={pr}
+                type="button"
+                onClick={() => setSelectedPriority(pr)}
+                className={cn(
+                  "rounded-md px-2 py-1 text-[11px] font-medium capitalize transition cursor-pointer",
+                  selectedPriority === pr
+                    ? "bg-card text-foreground font-semibold shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {pr.toLowerCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Filter Stats & Reset */}
+        <div className="flex items-center gap-2 ml-auto text-xs text-muted-foreground">
+          <span className="font-mono text-[11px]">
+            {filteredTasks.length} of {totalTasks} tasks
+          </span>
+
+          {isFiltered && (
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/10 transition cursor-pointer"
+            >
+              <RotateCcw className="size-3" />
+              <span>Reset</span>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Kanban Columns Grid */}
       <div className="grid gap-4 md:grid-cols-3">
         {cols.map((c) => {
-          const list = tasks.filter((t) => t.status === c.id);
+          const list = filteredTasks.filter((t) => t.status === c.id);
 
           return (
             <div
@@ -386,6 +523,13 @@ export function ProjectDetail() {
                     </div>
                   );
                 })}
+
+                {/* Empty filtered state */}
+                {list.length === 0 && isFiltered && (
+                  <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/60 py-6 px-3 text-center bg-card/20 my-1">
+                    <p className="text-xs text-muted-foreground font-medium">No matching tasks</p>
+                  </div>
+                )}
 
                 {/* Inline Add Task Form */}
                 {addingColumn === c.id ? (
