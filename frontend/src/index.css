@@ -186,3 +186,17 @@ html.dark {
 }
 @utility animate-rise { animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* Landing page keyframes */
+@keyframes scaleX {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Smooth scrolling for anchor links */
+html { scroll-behavior: smooth; }
+
+/* Landing page specific polish */
+.landing-page {
+  --landing-transition: cubic-bezier(0.22, 1, 0.36, 1);
+}

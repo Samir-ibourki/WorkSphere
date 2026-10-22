@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   FolderKanban,
   Loader,
@@ -18,10 +19,10 @@ import {
 import { useAuthStore } from "@/store/useAuthStore";
 import { useGetDashboardStats } from "@/hooks/useDashboard";
 import { useGetOrganizationUsers } from "@/hooks/useOrganization";
+import { CreateProjectModal } from "@/components/CreateProjectModal";
 
 export function Dashboard() {
-  const nav = useNavigate();
-
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const user = useAuthStore((state) => state.user);
   const workspaceLogo = useAuthStore((state) => state.workspaceLogo);
 
@@ -96,10 +97,14 @@ export function Dashboard() {
     },
   ];
 
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
   return (
     <AppShell
       crumbs={["Dashboard"]}
-      action={<NewButton onClick={() => nav("/projects")} />}
+      action={<NewButton label="New Project" onClick={() => setIsCreateOpen(true)} />}
     >
       {/* Greeting Header */}
       <div className="mb-8 flex items-center gap-3.5">
@@ -112,7 +117,7 @@ export function Dashboard() {
         )}
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Good evening, {user?.name || "Ava"}
+            {greeting}, {user?.name || "there"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Here's what's happening across your workspace.
@@ -246,6 +251,12 @@ export function Dashboard() {
           )}
         </section>
       </div>
+
+      {/* Quick Create Project Modal */}
+      <CreateProjectModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+      />
     </AppShell>
   );
 }
