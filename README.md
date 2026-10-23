@@ -188,8 +188,8 @@ WorkSphere/
 ## 👨‍💻 Author
 
 **Samir Ibourki**
-- LinkedIn: [Samir Ibourki](https://www.linkedin.com/in/samir-ibourki)
-- Portfolio: [samiribourki.dev](https://github.com/Samir-ibourki)
+- LinkedIn: [Samir Ibourki](https://www.linkedin.com/in/samir-ibourki-500255199/)
+- Portfolio: [samiribourki.netlfy](https://samir-ibourki.netlify.app/)
 - Email: [samiribourki7@gmail.com](mailto:samiribourki7@gmail.com)
 
 ---
