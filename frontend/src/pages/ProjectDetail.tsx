@@ -27,6 +27,7 @@ import {
 import { useAuthStore } from "@/store/useAuthStore";
 import { useGetProjectById, useDeleteProject } from "@/hooks/useProjects";
 import { useGetTasks, useCreateTask, useUpdateTask, useDeleteTask } from "@/hooks/useTasks";
+import { useProjectSocket } from "@/hooks/useProjectSocket";
 import { useGetOrganizationUsers } from "@/hooks/useOrganization";
 import { TaskDetailModal } from "@/components/TaskDetailModal";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
@@ -46,6 +47,9 @@ export function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const currentUser = useAuthStore((s) => s.user);
+
+  // Real-Time WebSocket sync for this project
+  useProjectSocket(id);
 
   const { data: project, isLoading: isProjectLoading } = useGetProjectById(id || "");
   const { data: tasksData, isLoading: isTasksLoading } = useGetTasks(id);
