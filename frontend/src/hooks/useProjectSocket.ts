@@ -8,27 +8,27 @@ export const useProjectSocket = (projectId?: string) => {
   useEffect(() => {
     if (!projectId) return;
 
-    // 1. Connecter le socket ila ma-kanch connecté
+    // 1. Connect socket if doean't connect
     if (!socket.connected) {
       socket.connect();
     }
 
-    // 2. Rejoindre la Room d had le projet
+    // 2. join room of this projet
     socket.emit("join:project", projectId);
 
-    // 3. Handler : melli t-bdel ay tâche, actualiser le cache TanStack Query
+    // 3. actualiser the cache TanStack Query
     const handleTaskChange = () => {
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     };
 
-    // 4. Écouter les 3 événements émis par le backend
+    // 4. listen 3 evenements emis for backend
     socket.on("task:created", handleTaskChange);
     socket.on("task:updated", handleTaskChange);
     socket.on("task:deleted", handleTaskChange);
 
-    // 5. Cleanup melli l-utilisateur y-khrej mn la page
+    // 5. Cleanup when user quit the page
     return () => {
       socket.emit("leave:project", projectId);
       socket.off("task:created", handleTaskChange);
