@@ -4,6 +4,8 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import prisma from "./prisma/client.js";
+import http from "http"
+import { initSocket } from "./config/socket.js";
 
 import authRouter from "./modules/auth/auth.routes.js";
 import projectRouter from "./modules/projects/project.routes.js";
@@ -16,6 +18,10 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3030;
+
+// create le serveur HTTP et attacher Socket.io
+const httpServer = http.createServer(app);
+initSocket(httpServer)
 
 // Middleware
 app.use(helmet());
@@ -45,8 +51,9 @@ async function main() {
     await prisma.$connect();
     console.log("✅ Database connected successfully");
 
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`⚡ WebSocket server is ready`);
     });
   } catch (error) {
     console.error("❌ Failed to connect to database:", error);

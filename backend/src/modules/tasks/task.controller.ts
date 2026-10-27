@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { taskService } from "./task.service.js";
 import type { createTaskInput, updateTaskInput } from "./task.schema.js";
+import { getIO } from "../../config/socket.js";
 
 // create Task
 export const createTask = async (
@@ -12,6 +13,8 @@ export const createTask = async (
     const organizationId = req.user!.organizationId; // ⬅️ Hna dima mn Token
 
     const task = await taskService.createTask(input, organizationId);
+
+    getIO().to(`project:${task.projectId}`).emit("task:created", task);
 
     res.status(201).json({
       success: true,
@@ -90,6 +93,7 @@ export const updateTask = async (
     const organizationId = req.user!.organizationId;
 
     const task = await taskService.updateTask(id, input, organizationId);
+    getIO().to(`project:${task.projectId}`).emit("task:updated", task);
 
     res.status(200).json({
       success: true,
@@ -113,7 +117,8 @@ export const deleteTask = async (
     const id = req.params.id as string;
     const organizationId = req.user!.organizationId;
 
-    await taskService.deleteTask(id, organizationId);
+    const deletedTask = await taskService.deleteTask(id, organizationId);
+    getIO().to(`project:${deletedTask.projectId}`).emit("task:deleted", { id: deletedTask.id });
 
     res.status(200).json({
       success: true,
