@@ -18,17 +18,17 @@ export const initSocket = (httpServer: HttpServer): Server => {
     // when client enter a projet in kanban
     socket.on("join:project", (projectId: string) => {
       socket.join(`project:${projectId}`);
-      console.log(`📌 Socket ${socket.id} joined room: project:${projectId}`);
+      console.log(`Socket ${socket.id} joined room: project:${projectId}`);
     });
 
     // when client quit the projet
     socket.on("leave:project", (projectId: string) => {
       socket.leave(`project:${projectId}`);
-      console.log(`🚪 Socket ${socket.id} left room: project:${projectId}`);
+      console.log(`Socket ${socket.id} left room: project:${projectId}`);
     });
 
     socket.on("disconnect", () => {
-      console.log(`❌ Client disconnected: ${socket.id}`);
+      console.log(`Client disconnected: ${socket.id}`);
     });
   });
 
