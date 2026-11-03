@@ -19,6 +19,8 @@ import { type Member, type Priority, type ProjectStatus } from "@/lib/store";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useGetOrganization, useGetOrganizationUsers } from "@/hooks/useOrganization";
 import { useGetProjects } from "@/hooks/useProjects";
+import { CommandPalette } from "@/components/CommandPalette";
+import { useEffect } from "react";
 
 export function Logo({ className }: { className?: string }) {
   return (
@@ -140,6 +142,18 @@ export function AppShell({
   action?: ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const location = useLocation();
   const path = location.pathname;
   const user = useAuthStore((s) => s.user);
@@ -296,7 +310,10 @@ export function AppShell({
             ))}
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <button className="hidden items-center gap-2 rounded-md border border-border bg-secondary/50 px-2.5 py-1.5 text-sm text-muted-foreground transition hover:border-primary/40 hover:text-foreground sm:flex">
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="hidden items-center gap-2 rounded-md border border-border bg-secondary/50 px-2.5 py-1.5 text-sm text-muted-foreground transition hover:border-primary/40 hover:text-foreground sm:flex cursor-pointer"
+            >
               <Search className="size-3.5" />
               Search…
               <kbd className="ml-6 flex items-center gap-0.5 rounded border border-border bg-background px-1 font-mono text-[10px]">
@@ -337,6 +354,7 @@ export function AppShell({
         </nav>
         <main className="flex-1 animate-rise p-4 md:p-8">{children}</main>
       </div>
+      <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
     </div>
   );
 }

@@ -1,9 +1,9 @@
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { projectService } from "./project.service.js";
 import type { createProjectInput, UpdateProjectInput } from "./project.schema.js";
 
 // create project
-export const createProject = async (req: Request, res: Response): Promise<void> => {
+export const createProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const input: createProjectInput = req.body;
     const organizationId = req.user!.organizationId;
@@ -15,16 +15,13 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
       message: "Project created successfully",
       data: project,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message || "Failed to create project",
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 // get all projects
-export const getProjects = async (req: Request, res: Response): Promise<void> => {
+export const getProjects = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const organizationId = req.user!.organizationId;
     const projects = await projectService.getProjects(organizationId);
@@ -33,16 +30,13 @@ export const getProjects = async (req: Request, res: Response): Promise<void> =>
       success: true,
       data: projects,
     });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: error.message || "Failed to fetch projects",
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 // get project By ID
-export const getProjectById = async (req: Request, res: Response): Promise<void> => {
+export const getProjectById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = req.params.id as string;
     const organizationId = req.user!.organizationId;
@@ -53,16 +47,13 @@ export const getProjectById = async (req: Request, res: Response): Promise<void>
       success: true,
       data: project,
     });
-  } catch (error: any) {
-    res.status(404).json({
-      success: false,
-      message: error.message || "Project not found",
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 // update project
-export const updateProject = async (req: Request, res: Response): Promise<void> => {
+export const updateProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = req.params.id as string;
     const input: UpdateProjectInput = req.body;
@@ -75,16 +66,13 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
       message: "Project updated successfully",
       data: project,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message || "Failed to update project",
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 // delete project
-export const deleteProject = async (req: Request, res: Response): Promise<void> => {
+export const deleteProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = req.params.id as string;
     const organizationId = req.user!.organizationId;
@@ -95,10 +83,7 @@ export const deleteProject = async (req: Request, res: Response): Promise<void> 
       success: true,
       message: "Project deleted successfully",
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message || "Failed to delete project",
-    });
+  } catch (error) {
+    next(error);
   }
 };

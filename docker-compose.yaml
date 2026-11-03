@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: worksphere-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: WorkSphere
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    container_name: worksphere-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: worksphere-backend
+    restart: unless-stopped
+    ports:
+      - "3030:3030"
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/WorkSphere?schema=public"
+      REDIS_URL: "redis://redis:6379"
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  postgres_data:
