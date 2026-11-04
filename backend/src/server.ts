@@ -13,6 +13,8 @@ import taskRouter from "./modules/tasks/task.routes.js";
 import organizationRouter from "./modules/organizations/organization.routes.js";
 import dashboardRouter from "./modules/dashboard/dashboard.routes.js";
 import { generalLimiter } from "./middleware/rateLimiter.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import "./jobs/email.worker.js";
 
 dotenv.config();
 
@@ -23,26 +25,29 @@ const PORT = process.env.PORT || 3030;
 const httpServer = http.createServer(app);
 initSocket(httpServer);
 
-// Middleware
+// middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
-// Rate Limiting (DoS protection for all /api endpoints)
+// rate limiting (DoS protection for all /api endpoints)
 app.use("/api", generalLimiter);
 
-// Routes
+// routes
 app.use("/api/auth", authRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/organizations", organizationRouter);
 app.use("/api/dashboard", dashboardRouter);
 
-// Health check
+// health check
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
+
+// Centralized error handling middleware (catches database/system errors and returns clean responses)
+app.use(errorHandler);
 
 // Start server
 async function main() {

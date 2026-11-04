@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { organizationService } from "./organization.service.js";
 import type { UpdateOrganizationInput } from "./organization.schema.js";
+import { emailQueue } from "../../config/queue.js";
 
 // get my organization
 export const getOrganization = async (
@@ -9,8 +10,8 @@ export const getOrganization = async (
 ): Promise<void> => {
   try {
     const organizationId = req.user!.organizationId;
-    const organization =
-      await organizationService.getOrganizationById(organizationId);
+    const organization = await organizationService.getOrganizationById(organizationId);
+    
 
     res.status(200).json({
       success: true,
@@ -80,10 +81,17 @@ export const inviteMember = async (
 ): Promise<void> => {
   try {
     const organizationId = req.user!.organizationId;
+    const organization = await organizationService.getOrganizationById(organizationId);
     const member = await organizationService.inviteMember(
       organizationId,
       req.body,
     );
+
+    await emailQueue.add("send-invite", {
+      to: member.email,
+      workspaceName: organization.name,
+      inviteLink: "http://localhost:5173/login",
+    });
 
     res.status(201).json({
       success: true,
